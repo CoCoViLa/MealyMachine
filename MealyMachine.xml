@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE package SYSTEM "package.dtd">
+<package>
+    <name>MealyMachine</name>
+    <description>A package for composing a Mealy Machine style state machines for a Dynamic System Simulator</description>
+    <class type="class">
+        <name>InitState</name>
+        <description/>
+        <icon>icons_MM/initstate.gif</icon>
+        <graphics>
+            <bounds height="20" width="20" x="0" y="0"/>
+            <oval colour="0" filled="true" fixed="false" height="20"
+                linetype="0.0" stroke="1" transparency="255" width="20"
+                x="0" y="0"/>
+        </graphics>
+        <ports>
+            <port name="cocoName" portConnection="area" strict="false"
+                type="String" x="10" y="10">
+                <open>
+                    <graphics>
+                        <bounds height="20" width="20" x="-10" y="-10"/>
+                    </graphics>
+                </open>
+                <closed>
+                    <graphics/>
+                </closed>
+            </port>
+        </ports>
+    </class>
+    <class type="class">
+        <name>State</name>
+        <description/>
+        <icon>icons_MM/state.gif</icon>
+        <graphics>
+            <bounds height="40" width="100" x="0" y="0"/>
+            <oval colour="0" filled="false" fixed="false" height="40"
+                linetype="0.0" stroke="1" transparency="255" width="100"
+                x="0" y="0"/>
+        </graphics>
+        <ports>
+            <port name="cocoName" portConnection="area" strict="false"
+                type="String" x="50" y="20">
+                <open>
+                    <graphics>
+                        <bounds height="40" width="100" x="-50" y="-20"/>
+                    </graphics>
+                </open>
+                <closed>
+                    <graphics/>
+                </closed>
+            </port>
+        </ports>
+        <fields>
+            <field name="name" type="String">
+                <known>
+                    <graphics>
+                        <text colour="80000" fixed="true"
+                            fontname="Arial" fontsize="12" fontstyle="0"
+                            string="*self" x="10f" y="25"/>
+                    </graphics>
+                </known>
+            </field>
+        </fields>
+    </class>
+    <class type="class">
+        <name>EndState</name>
+        <description/>
+        <icon>icons_MM/endstate.gif</icon>
+        <graphics>
+            <bounds height="20" width="20" x="0" y="0"/>
+            <oval colour="0" filled="false" fixed="false" height="20"
+                linetype="0.0" stroke="1" transparency="255" width="20"
+                x="0" y="0"/>
+            <oval colour="0" filled="true" fixed="false" height="13"
+                linetype="0.0" stroke="1" transparency="255" width="13"
+                x="4" y="4"/>
+        </graphics>
+        <ports>
+            <port name="cocoName" portConnection="area" strict="false"
+                type="String" x="10" y="10">
+                <open>
+                    <graphics>
+                        <bounds height="20" width="20" x="-10" y="-10"/>
+                    </graphics>
+                </open>
+                <closed>
+                    <graphics/>
+                </closed>
+            </port>
+        </ports>
+    </class>
+    <class type="relation">
+        <name>Transition</name>
+        <description/>
+        <icon>icons_MM/transition.gif</icon>
+        <graphics>
+            <bounds height="-20" width="50" x="0" y="0"/>
+            <arc arcAngle="180" height="20" startAngle="0" width="50"
+                x="0" y="-15"/>
+            <line colour="0" x1="45rf" x2="50" y1="-18" y2="-6"/>
+            <line colour="0" x1="38rf" x2="50" y1="-1" y2="-6"/>
+            <painter>TransitionPainter</painter>
+        </graphics>
+        <ports>
+            <port name="from" portConnection="area" strict="false"
+                type="String" x="0" y="0"/>
+            <port name="to" portConnection="area" strict="false"
+                type="String" x="50" y="0"/>
+        </ports>
+        <fields>
+            <field name="order" type="int"/>
+            <field name="condition" type="String"/>
+            <field name="action" type="String"/>
+        </fields>
+    </class>
+    <class type="class">
+        <name>MealyMachineSupervisor</name>
+        <description>Class to be set as a supervisor for Mealy models</description>
+        <icon>icons_MM/supervisor.gif</icon>
+        <graphics>
+            <bounds height="50" width="100" x="0" y="0"/>
+            <rect colour="0" filled="false" fixed="false" height="50"
+                linetype="0.0" stroke="1.0" transparency="255"
+                width="100" x="0" y="0"/>
+            <text colour="0" fixed="true" fontname="Arial" fontsize="12"
+                fontstyle="0" string="Supervisor" x="20" y="30"/>
+        </graphics>
+    </class>
+</package>
