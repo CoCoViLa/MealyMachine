@@ -9,6 +9,7 @@ Usage
 Typically the Mealy machines are to be used as a part of a bigger (Dynamic or Discrete) System Simulator. For that the Mealy machine schemes must be exported as objects first and then these objects can be included in those Simulation schemes.  
 
 Current CoCoViLa implementation do not support a multitude of packages in a project, hence the content of MealyMachine package should be merged with the content of the Simulator. It is advisable to do as follows:
+
 1. Make a copy of the Simulator package folder (together with all the files and folders in it) and name it as you like (for example MySimulator).
 2. Rename the .xml file. It is advisable to rename it to have the same name as the package folder (for example MySimulator.xml).
 2. Edit the .xml file (MySimulator.xml) and copy all the classes from the MealyMachine.xml (located in the MealyMachine package folder) into it.
