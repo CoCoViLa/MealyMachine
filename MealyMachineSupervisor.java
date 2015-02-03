@@ -36,10 +36,10 @@ public class MealyMachineSupervisor {
 	}@*/
 	
 	boolean debugContext = false;
-	boolean debugParse = true;
+	boolean debugParse = false;
 	boolean debugProgGen = false;
 	boolean debugExecute = false;
-	boolean debug = true;
+	boolean debug = false;
 
 	Map <String,String> stateCodes = new HashMap<String,String>();
 	Map <String,HashSet<String>> stateCodeInputs = new HashMap<String,HashSet<String>>();
