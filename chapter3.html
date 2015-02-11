@@ -1,1 +1,20 @@
-<div class="panel panel-default">  <div class="panel-body"><h1> Mealy state chart inputs and outputs</h1><p>Typically a Mealy machines use some variables (variables that are referred to in the conditional expressions and actions). These variables have to be declared. In addition the variables that are going to be bound through the ports (connection points to the external world) have to be defined as inputs and/or outputs.</p><p>In order to declare the variables and define the inputs and outputs open the editor from Scheme>Extend... and enter something similar to the following:</p><p>Use the following lines as an example:</p><code>// Variables declaration<br/>double in1, in2, out1, out2;<br/>// Input - output definition<br/>alias inputs = [in1, in2];<br/>alias outputs = [out1, out2];<br/>String outputNames = "out1, out2";</code><p>NB! The variable list in outputs and outputNames must be identical!</p>  </div>  </div>
+<div class="panel panel-default">
+  <div class="panel-body">
+<h1> Mealy state chart inputs and outputs</h1>
+
+<p>Typically a Mealy machines use some variables (variables that are referred to in the conditional expressions and actions). These variables have to be declared. In addition the variables that are going to be bound through the ports (connection points to the external world) have to be defined as inputs and/or outputs.</p>
+
+<p>In order to declare the variables and define the inputs and outputs open the editor from Scheme>Extend... and enter something similar to the following:</p>
+
+<p>Use the following lines as an example:</p>
+
+<code>// Variables declaration<br/>
+double in1, in2, out1, out2;<br/>
+// Input - output definition<br/>
+alias inputs = [in1, in2];<br/>
+alias outputs = [out1, out2];<br/>
+String outputNames = "out1, out2";</code>
+<p>
+NB! The variable list in outputs and outputNames must be identical!</p>
+  </div>
+  </div>
