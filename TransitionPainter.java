@@ -20,11 +20,14 @@ import ee.ioc.cs.vsle.vclass.RelObj;
 public class TransitionPainter extends ClassPainter {
 	private static double arcProportion = 0.1;
 	
+	private static Color arcColor = Color.BLACK;
 	private static Color conditionColor = Color.MAGENTA;
 	private static Color actionColor = Color.BLUE;
 
 	@Override
 	public void paint(Graphics2D graphics, float scale) {
+		Color origColor = graphics.getColor();
+		
 		if ( ((RelObj) vclass).getStartPort() == ((RelObj) vclass).getEndPort() ) {
 			/* Case of the reflective transition */
 			GObj stateObj = ((RelObj)vclass).getEndPort().getObject();
@@ -142,6 +145,9 @@ public class TransitionPainter extends ClassPainter {
 			Point2D.Double arcCenter = new Point2D.Double(
 					stateCenter.x + stateWidth/2*Math.cos(arcAngle) + arcWidth*0.4*Math.cos(arcAngle), 
 					stateCenter.y + stateHeight/2*Math.sin(arcAngle) + arcWidth*0.4*Math.sin(arcAngle));
+
+			// Draw the arc
+			graphics.setColor(arcColor);
 			double fromAngle = Math.PI+0.1;
 			double toAngle = Math.PI-0.1;
 			EllipticalArc mainArc = new EllipticalArc(arcCenter, 
@@ -239,6 +245,7 @@ public class TransitionPainter extends ClassPainter {
 			double angle = vclass.getAngle();
 
 			// Draw the arc
+			graphics.setColor(arcColor);
 			double fromAngle = Math.PI;
 			double toAngle = 2*Math.PI;
 			EllipticalArc mainArc = new EllipticalArc(center, distance/2, 
@@ -304,6 +311,8 @@ public class TransitionPainter extends ClassPainter {
 		}
 		// Remove original graphics
 		vclass.getShapes().clear();
+		// Restore old color
+		graphics.setColor(origColor);
 	}
 
 	/**
