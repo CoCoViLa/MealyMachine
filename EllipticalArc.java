@@ -862,7 +862,7 @@ public class EllipticalArc
 
     for (int i = 0; i < n; ++i) {
 
-      double etaA  = etaB;
+      //double etaA  = etaB;
       double xA    = xB;
       double yA    = yB;
       double xADot = xBDot;
