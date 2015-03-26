@@ -1,0 +1,17 @@
+<div class="panel panel-default">
+  <div class="panel-body">
+<h1>Insights</h1>
+
+<p>Based on the drawn scheme a program is synthesized for every State. The program looks 
+as an if-else clause that contains all the conditional expressions from the Transitions 
+exiting the State and the actions correspondingly. That program is executed, when the 
+state machine is at the current State, with the Javascript engine. Such an execution 
+corresponds to a state->nextstate axiom realization, that may modify the output variables, 
+bring us to a new or remain in the current state - all depending on the scheme.</p>
+
+<p>Current implementation parses all conditions and actions and extracts variable names 
+that must be passed to the Javascript engine before the execution and read from it after 
+the execution. These variables must be declared, as it is described above.</p>
+
+  </div>
+  </div>
