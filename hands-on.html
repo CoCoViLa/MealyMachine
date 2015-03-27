@@ -46,22 +46,23 @@ The first thing to do with the current implementation is always adding a Supervi
 
 <p>In case of a Flusher it should have 2 states: Waiting and Flushing.
 These states correspond to the situation where the flusher (flushing valve) is open or closed.
-We model it by introducing a variable <em>flushing</em>.
-When moving over from one state to another the flusher is opened or closed and the <em>flushing</em> 
-is evaluated to 1 or 0 accordingly. We are going to propagete the value of <em>flushing</em> 
+We model it by introducing a variable <code>flushing</code>.
+When moving over from one state to another the flusher is opened or closed and the <code>flushing</code> 
+is evaluated to 1 or 0 accordingly. We are going to propagete the value of <code>flushing</code> 
 outside the Flusher, hence it has to be declared as an output. 
 </p>
 
 <p>Flushing should stop when the level of water in the tank drops below some threshold.
-Let's introduce two more variables: <em>minLevel</em> (the threshold) and <em>level</em> 
-(input from outside). We are going to change the state Open to Close when the <em>level</em> 
-drops below <em>minLevel</em>
+Let's introduce two more variables: <code>minLevel</code> (the threshold) and <code>level</code> 
+(input from outside). We are going to change the state Open to Close when the <code>level</code> 
+drops below <code>minLevel</code>
 </p>
 
 <p>To imitate the operation of a flush-tank, flushing should take place every now and then.
 We can make it happen by measuring the elapsed time and setting randomly a waiting time until 
 the flushing takes place next. 
-For that we introduce variables <em>waitingTime</em>, <em>timeElapsed</em> and <em>timeStep</em>. 
+For that we introduce variables <code>waitingTime</code>, <code>timeElapsed</code> and 
+<code>timeStep</code>. 
 The latter is acquired from the Supervisor and denotes the period of the machine execution.
 </p>
 
@@ -74,7 +75,7 @@ The latter is acquired from the Supervisor and denotes the period of the machine
 must be declared as well as the inputs and outputs. 
 To finish developing the flusher component export it as a scheme object (as it is described in 
 <a href="mm2object.html" class="sidebar-link">Create a new Scheme Object from the drawn scheme</a>).
-I would be advisable to define the <em>minLevel</em> as a field of the component.
+I would be advisable to define the <code>minLevel</code> as a field of the component.
 </p>
 
 <p>The Valve component can be created similarly.
