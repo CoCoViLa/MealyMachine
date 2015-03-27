@@ -1,5 +1,6 @@
 <div class="panel panel-default">
   <div class="panel-body">
+
 <h1> Creating a Mealy state chart</h1>
 
 <p>A Mealy state chart in the current implementation should always have one Initial State 
@@ -23,7 +24,14 @@ typically used to give some initial evaluation to the variables used in the mach
 expression "true". Similarly you can leave empty the action field, which is treated as no 
 action.</p>
 
+<p>There should be exactly one Transition leaving the Initial State. The condition part of 
+that Transition is ignored. In the action part of the Transition you can perform initialisations
+of the variables used by other Transition actions only. There is no access to the input
+variables.
+
 <p>When a Mealy machine reaches a Final State - no action is further executed.</p>
+
+<p>Next: <a href="io_definition.html">Mealy state chart inputs and outputs</a></p>
 
   </div>
   </div>
