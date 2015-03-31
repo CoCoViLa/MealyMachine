@@ -25,11 +25,11 @@ The following operators are supported:
 <p>Typical conditions look as follows: 
 </p>
 
-<code>
+<pre>
 i<limit
 gateIsOpen
 a+b > c/d && a < d
-</code>
+</pre>
 
 <p>See <em>Language description in BNF</em> for more detailed description
 </p>
@@ -74,16 +74,16 @@ The values of out1 and out2 are assigned to x and y.
 <p>The following is the description of the language used in conditions and actions in 
 <a href="http://en.wikipedia.org/wiki/Backus%E2%80%93Naur_Form">BNF</a>.
 </p>
-<pre>
-&ltcondition> ::= &ltexpression>
-&ltaction> ::= &ltprogram>
+<xmp>
+<condition> ::= &ltexpression>
+<action> ::= &ltprogram>
 
 &ltarithmetic-op> ::= "+" | "-" | "*" | "/" | "%"
 &ltbinary-op> :== &ltarithmetic-op> | &ltlogic-op> | &ltcomparison-op>
 &ltcomparison-op> ::=  "==" | "!=" | "<" | ">" | "<=" | ">="
 &lteval-op> ::= "=" | "+=" | "-=" | "*=" | "/=" | "%="
 &ltevaluation> ::= &ltname> &lteval-op>  &ltexpression>
-&ltexpression> ::= &ltname> | &ltvalue> | &ltexpression> &ltbinary-op> &ltexpression> | "(" &ltexpression> ")"
+&ltexpression> ::= &ltname> | &ltvalue> | &ltexpression> &ltbinary-op> &ltexpression> | "(" &ltexpression> ")" | 
 &ltexpression-list> ::= &ltexpression> | &ltexpression> "," &ltexpression-list>
 &ltlogic-op> ::= "||" | "&&" | "!" | "&" | "|" | "~" | "^" | "<<" | ">>"
 &ltmethod-call> ::= &ltname> "(" &ltexpression-list> ")"
@@ -98,7 +98,7 @@ The values of out1 and out2 are assigned to x and y.
 &ltalpha-num> - sequence of alphabetical and numeric characters that starts with a letter
 &ltnumber> - sequence of numeric characters
 &lttext> - any sequence of characters
-</pre>
+</xmp>
 
 <p>Next: <a href="mm2object.html" class="inner-link">Create a new Scheme Object from the drawn scheme</a></p>
 
