@@ -34,7 +34,7 @@ i < limit
 
 gateIsOpen
 
-a + b > c / d && a < d
+(a + b > c / d) && a < d
 </code>
 </pre>
 
@@ -79,6 +79,7 @@ When a subtask is used as an expression, only the first output is passed on.
 <p>The following is the description of the language used in conditions and actions in 
 <a href="http://en.wikipedia.org/wiki/Backus%E2%80%93Naur_Form">BNF</a>.
 </p>
+
 <!-- <textarea rows="10" cols="80" readonly="readonly"> -->
 <xmp>
 <condition> ::= <expression>
@@ -102,13 +103,14 @@ When a subtask is used as an expression, only the first output is passed on.
 <unary-evaluation> ::= <name> "+" "+" | <name> "-" "-"
 <value> ::= <number> | '"' <text> '"' 
 
-<alpha-num> - sequence of alphabetical and numeric characters that starts with a letter
-<number> - sequence of numeric characters
+<alpha-num> - sequence of letters and numbers that starts with a letter
+<number> - a number in the form JS accepts it
 <text> - any sequence of characters
 </xmp>
 <!-- </textarea> -->
 
-<p>Next: <a href="mm2object.html" class="inner-link">Create a new Scheme Object from a diagram</a></p>
+<p>Next: <a href="hands-on.html" class="inner-link">Hands-on</a>
+</p>
 
   </div>
   </div>
