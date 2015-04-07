@@ -43,6 +43,13 @@ public class MealyMachineSupervisor {
    Map <String,HashSet<String>> stateCodeInputs = new HashMap<String,HashSet<String>>();
    Map <String,HashSet<String>> stateCodeOutputs = new HashMap<String,HashSet<String>>();
    Map <String,ArrayList<SubtaskMethod>> stateSubtasks = new HashMap<String,ArrayList<SubtaskMethod>>();
+   
+   static String[] arithmOp = new String {"+","-","*","/","%"};
+   static String[] comparOp = new String {"==","!=","<",">","<=",">="};
+   static String[] logicOp = new String {"||","&&","!","&","|","~","^","<<",">>",""};
+   static String[] evalOp = new String {"="};
+   static String[] complexEvalOp = new String {"+=","-=","*=","/=","%="};
+   static String[] unaryEvalOp = new String {"++","--"};
 
    public String init(String csoName) {
       if (debug) {
@@ -307,7 +314,7 @@ public class MealyMachineSupervisor {
       if (logExp == null ||logExp.isEmpty() || logExp.equals("true")) {
          return "true";
       }
-      String[] split1 = logExp.split("<|>|=|\\+|\\-|\\*|/|\\(|\\)|\\|\\||&&");
+      String[] split1 = logExp.split("<|>|=|\\+|\\-|\\*|/|\\(|\\)|\\|\\||&&|!");
       for (String s : split1) {
          if (debugParse) {
             System.out.println(" Token extracted: "+s);
@@ -434,7 +441,7 @@ public class MealyMachineSupervisor {
             result += stm.getJavaScript();
          } else {
             String[] cSplit = clause.split("=",2);
-            if (cSplit.length==1) {
+            if (cSplit.length==1) { // There was no "=" in clause
                if (debugParse) {
                   System.out.println(" case (MC): "+clause);
                }
@@ -483,6 +490,10 @@ public class MealyMachineSupervisor {
       ArrayList<String> ins = new ArrayList<String>();
       String[] split1 = exp.split("\\+|-|\\*|/|\\(|\\)");
       for (String s : split1) {
+    	  if () {
+    		  // Ignore method names
+    		  continue;
+    	  }
          if (s.length()>0 && !s.matches("\\d*") && !s.contains(".")) {
             ins.add(s.trim());
          }
