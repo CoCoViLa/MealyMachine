@@ -5,29 +5,38 @@
 
 <p>A Mealy state chart in the current implementation should always have one Initial State 
 and one MealyMachineSupervisor block. The latter must be set as super from the 
-right-mouse-click menu.</p>
+right-mouse-click menu.
+</p>
 
 <p>Introduce as many States as needed and name them properly (name field is accessible 
 from Properties window, which can be opened with a double-mouse-click or a 
 right-mouse-click>Properties).
 </p>
+
 <p>Introduce the Transitions between the states and define their conditional expressions 
 and actions (again through the Properties window). The condition and action must be entered 
-conforming Javascript syntax. Actions are executed when the Transition condition expression 
-is evaluating to true and the Transition is used.</p>
+conforming Javascript syntax. An action is executed when the Transition's condition expression 
+is evaluating to true and the Transition is used.
+</p>
 
-<p>The conditional expression or a Transition exiting an Initial State is ignored - it is 
-advised to leave it empty. The action is executed before the simulation starts and is 
-typically used to give some initial evaluation to the variables used in the machine.</p>
+<p>There should be exactly one Transition leaving the Initial State. 
+The conditional expression of that Transition is ignored - it is advised to leave it empty. 
+The action is executed before the simulation starts and is meant to be used for some 
+initial evaluation to the variables used in the machine. 
+The input variables cannot be accessed there.
+</p>
 
 <p>You can always leave the Transition condition field empty - this is treated as an 
 expression "true". Similarly you can leave empty the action field, which is treated as no 
-action.</p>
+action.
+</p>
 
-<p>There should be exactly one Transition leaving the Initial State. The condition part of 
-that Transition is ignored. In the action part of the Transition you can perform initialisations
-of the variables used by other Transition actions only. There is no access to the input
-variables.
+<p>At every execution (state->nextstate computation handled by the Simulation Engine) up-to 
+one Transition exiting the surrent state is used. 
+If there are several Transitions whose conditional expressions evaluate to true the one having 
+least order field value is selected. 
+An empty order is equated to 0.
+</p>
 
 <p>When a Mealy machine reaches a Final State - no action is further executed.</p>
 
