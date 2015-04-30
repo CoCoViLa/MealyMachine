@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head> <!-- Head -->
+  <title>CoCoViLa  demo package for Mealy Machine</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="http://cocovila.github.io/bootstrap/bootstrap.css">
+  <link rel="stylesheet" href="http://cocovila.github.io/css/customize.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+  <script src="js/loadToPrint.js"></script>
+  <script src="http://cocovila.github.io/bootstrap/bootstrap.min.js"></script>
+</head> <!-- Head end -->
+
+<!--  Body -->
+<body id="body-packages">
+<div id="top-nav"></div>
+
+<!-- main content   -->
+
+<div class="container-fluid">
+  <div class="panel panel-default">
+    <div class="panel-body">
+      <h1>Mealy Machine</h1>
+    </div>
+  </div>
+  <div class="row">
+      
+    <div class=" col-md-12 ">  
+         <div id="content">
+        <div class="panel panel-default">
+          <div class="panel-body">
+<p>A CoCoViLa package that enable Mealy machine construction via state diagrams drawing. 
+The package is meant to be used together with CoCoViLa (Dynamic or Discrete) 
+System Simulator packages.</p>
+
+<img src="img/flying-mealy-diagram.png" alt="flying-mealy-diagram" class="center-block">
+              
+<p>A state diagram is composed of an Initial State and one or more States. It may have an End State. 
+The States are to be connected with Transitions. Transitions are labeled with conditional 
+expressions and actions. Based on the conditional expressions it is decided which of the 
+Transitions exiting the current State is used on execution. If there are several 
+Transitions that are usable (their conditional expressions evaluate to true) the one, 
+having alphabetically first name, is used. The action is executed when the Transition is used.
+You can find more information on Mealy machine 
+<a href="http://en.wikipedia.org/wiki/Mealy_machine">here</a>.
+</p>
+
+          </div>
+        </div>
+      </div>
+      </div>
+
+   
+  </div> <!-- row end -->
+</div> <!--  Container end -->
+
+<div id="footer"></div>
+    
+</body> <!--  Body end-->
+
+</html>
