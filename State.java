@@ -1,8 +1,8 @@
 class State {
-	/*@ specification State {
+    /*@ specification State {
 		String name;
 		String cocoName;
 		cocoName = cocovilaSpecObjectName;
 	}@*/
- 
+
 }

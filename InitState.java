@@ -1,5 +1,5 @@
 class InitState extends State{
-	/*@ specification InitState super State {
+    /*@ specification InitState super State {
 	}@*/
- 
+
 }

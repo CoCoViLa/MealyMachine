@@ -1,5 +1,5 @@
 class Transition {
-	/*@ 
+    /*@ 
 	specification Transition  {
 		String from, to;
 		String condition, action;
@@ -8,8 +8,8 @@ class Transition {
 		from, order -> id {id};
 	}
 	@*/
-	
-	String id (String from, int order) {
-		return from+" "+order;
-	}
+
+    String id (String from, int order) {
+        return from+" "+order;
+    }
 };
