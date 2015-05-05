@@ -2,7 +2,7 @@
 <!DOCTYPE package SYSTEM "package.dtd">
 <package>
     <name>MealyMachine</name>
-    <description>A package for composing a Mealy Machine style state machines for a Dynamic System Simulator</description>
+    <description>A package for composing a Mealy Machine style state diagrams for a Dynamic System Simulator</description>
     <class type="class">
         <name>InitState</name>
         <description/>
