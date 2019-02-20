@@ -1,264 +1,360 @@
-
-
+import java.io.File;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Map;
 
-import ee.ioc.cs.vsle.api.Scheme;
+import javax.script.ScriptContext;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
 
-public class Parser {
-    static String[] arithmOps = new String[] {"+","-","*","/","%"};
-    static String[] comparOps = new String[] {"==","!=","<=",">=","<",">"};
-    static String[] logicOps = new String[] {"&&","||","!","&","|","~","^","<<",">>"};
-    static String[] evalOps = new String[] {"=","+=","-=","*=","/=","%="};
-    static String[] unaryEvalOps = new String[] {"++","--"};
-    static String nameRegEx = "[\\w&&\\D]\\w*";
-    static String indexRegEx = "(\\[.+\\])*?";
-    static String dotNameRegEx = "(("+nameRegEx+")(\\."+nameRegEx+")*)";
-    static String dotIndexNameRegEx = "(("+nameRegEx+")"+indexRegEx+"(\\."+nameRegEx+indexRegEx+")*)";
-    static String justNumberRegEx = "^\\-?\\d*\\.?\\d+$";
-    boolean debugParse = false;
-    Scheme scheme;
+import ee.ioc.cs.vsle.api.ProgramContext;
+import ee.ioc.cs.vsle.api.SchemeObject;
+import ee.ioc.cs.vsle.editor.SchemeContainer;
+import ee.ioc.cs.vsle.vclass.RelObj;
+import ee.ioc.cs.vsle.vclass.Scheme;
 
-    public Parser(Scheme scheme, boolean debugParse) {
-        this.scheme = scheme;
-        this.debugParse = debugParse;
-    }
+public class MealyMachineSupervisor {
+    /*@ specification MealyMachineSupervisor  {
+      String initstate, state, nextstate, finalstate;
 
-    /** Statement parser
-     *  Expects spaceless input!
-     * @param stmt
-     * @param ins
-     * @param outs
-     * @param stms
-     * @return
-     */
-    public String parseStatement(String stmt, HashSet<String> ins,	HashSet<String> outs, 
-            List<SubtaskMethod> stms) {
-        debugParse("\n Parsing statement: "+stmt+"\n");
-        String trimmed = stmt.replaceAll("\\s+", "");
+      alias inputs;
+      alias outputs;
+      String outputNames;
 
-        String subtaskRegex = "^\\[(.+)\\]=(\\[.+\\Q|-\\E.+\\Q->\\E.+\\])\\((.+)\\)$";
-        String evaluationRegex = "^"+dotIndexNameRegEx+appendAlternatives("()",evalOps)+"(.+)$";
-        String unaryRegex = "^"+dotIndexNameRegEx+appendAlternatives("()",unaryEvalOps)+"$";
-        String methodCallRegex = "^"+dotNameRegEx+"\\((.*)\\)$";
+      cocovilaSpecObjectName -> initstate {init};
+      state, inputs, cocovilaSpecObjectName -> nextstate {advance};
+      nextstate, outputNames -> outputs {setInterfaceVariables};
 
-        String result;
-        HashSet<String> inputs = new HashSet<String>();
-        HashSet<String> outputs = new HashSet<String>();
+   } @*/
 
-        if (trimmed.matches(subtaskRegex)) {
-            debugParse(" - subtask match!");
-            debugParse("    "+subtaskRegex);
-            for (int i=1; i<=3; i++) {
-                debugParse("     "+i+": "+trimmed.replaceAll(subtaskRegex, "$"+i));
+    boolean debugContext = true;
+    boolean debugParse = true;
+    boolean debugProgGen = false;
+    boolean debugExecute = true;
+    boolean debug = debugContext || debugParse || debugProgGen || debugExecute;
+
+    Map <String,String> stateCodes = new HashMap<String,String>();
+    Map <String,HashSet<String>> stateCodeInputs = new HashMap<String,HashSet<String>>();
+    Map <String,HashSet<String>> stateCodeOutputs = new HashMap<String,HashSet<String>>();
+    Map <String,ArrayList<SubtaskMethod>> stateSubtasks = new HashMap<String,ArrayList<SubtaskMethod>>();
+
+    public String init(String csoName) {
+        if (debug) {
+            System.out.println("\nMealyMachineSupervisor "+csoName+" init");
+        }
+        if (debugContext) {
+            System.out.println("  context: class - "+this.getClass().getName());
+            System.out.println("  context: fields in class - ");
+            for (Field field : this.getClass().getDeclaredFields()) {
+                System.out.println("    "+field.getType().getName()+" : "+field.getName());
             }
-            SubtaskMethod stm = new SubtaskMethod();
-            stm.prepare(scheme, trimmed.replaceAll(subtaskRegex, "$2"));
-            stm.inputList = parseList(trimmed.replaceAll(subtaskRegex, "$3"), inputs, outputs, stms);
-            stm.outputs = trimmed.replaceAll(subtaskRegex, "$1").split(",");
-            // Extract output variable names
-            for (String var : stm.outputs) {
-                if (var.matches(dotIndexNameRegEx)) {
-                    outputs.add(var.replaceAll(dotIndexNameRegEx, "$2"));
-                } else {
-                    error(" Parse error! Cannot extract output from "+stmt);
+        }
+        List<String> initStatesAL = new ArrayList<String>();
+        List<String> statesAL = new ArrayList<String>();
+        List<SchemeObject> endStatesAL = new ArrayList<SchemeObject>();
+        List<SchemeObject> transitionsAL = new ArrayList<SchemeObject>();
+        Map <String,ArrayList<RelObj>> statesTrans = new HashMap<String,ArrayList<RelObj>>();
+
+        // Locate the package directory
+        Scheme topScheme = (Scheme) ProgramContext.getScheme();
+        String dir = topScheme.getContainer().getWorkDir();
+        // Find out the name of the current scheme 
+        String className = "";
+        if (debugContext) {
+            System.out.println("  Objects in top level scheme");
+        }
+        for ( SchemeObject schObj : topScheme.getObjects() ) {
+            if (debugContext) {
+                System.out.println("    "+schObj.getClassName()+" : \""+schObj.getName()+"\"");
+            }
+            if (schObj.getName().equals(csoName)) {
+                className = schObj.getClassName();
+                break;
+            }
+        }
+
+        // Load the scheme
+        File file = new File(dir, className + ".syn");
+        SchemeContainer sc = new SchemeContainer(topScheme.getPackage(), dir);
+        sc.loadScheme(file);
+
+        // Collect states and transitions
+        if (debugContext) {
+            System.out.println("  Process objects from the current scheme");
+        }
+        for ( SchemeObject schObj : sc.getScheme().getObjects() ) {
+            if (debugContext) {
+                System.out.println("    "+schObj.getClassName()+" : "+schObj.getName());
+            }
+            switch (schObj.getClassName()) {
+            case "InitState": initStatesAL.add(schObj.getName()); statesAL.add(schObj.getName()); break;
+            case "State": statesAL.add(schObj.getName()); break;
+            case "EndState": endStatesAL.add(schObj); break;
+            case "Transition": transitionsAL.add(schObj);
+            // Store the transition at the State it exits in the collection of States
+            RelObj transition = (RelObj) schObj;
+            SchemeObject fromStateSchObj = getFromObj(transition);
+            String fromStateObjName = fromStateSchObj.getName();
+            String fromStateName = "";
+            // Init- and EndStates have no name, so remember the names of only States for debugging
+            if (fromStateSchObj.getClassName()=="State") {
+                fromStateName = (String) fromStateSchObj.getFieldValue("name");
+            }
+            if (debugContext) {
+                System.out.println(
+                        "      " + fromStateObjName+"--"+fromStateName+" -> "
+                                + getToObj(transition).getName()
+                                + "\n        " + schObj.getFieldValue("condition")
+                                + "\n        "+schObj.getFieldValue("action"));
+            }
+            // Add a new state to the collection when needed
+            if (!statesTrans.containsKey(fromStateObjName)) {
+                statesTrans.put(fromStateObjName, new ArrayList<RelObj>());
+            }
+            // Add the transition at the State
+            statesTrans.get(fromStateObjName).add(transition);
+            }
+        }
+        if (initStatesAL.size()==0) {
+            System.err.println("InitState not present @ "+csoName);
+            return null;
+        } else if (initStatesAL.size()>1) {
+            System.err.println("Several InitStates is not allowed @ "+csoName);
+            return null;
+        }
+
+        // Create condition and action code pieces - programs to be executed from the states
+        Parser parser = new Parser(topScheme, debugParse);
+        for (String state : statesAL) {
+            if (debugProgGen) {
+                System.out.println("\n Creating program for state "+state);
+            }
+            // Sort transitions based on the "order" field
+            ArrayList<RelObj> ts = statesTrans.get(state);
+            if (ts == null) {
+                System.err.println("A state without exiting transitions should be finite.");
+                return null;
+            }
+            if (debugProgGen) {
+                System.out.println(" Transitions before sort "+ts);
+            }
+            boolean swapped = true;
+            while (swapped) {
+                swapped = false;
+                for (int i=0; i<ts.size()-1; i++) {
+                    String tsoCurrent = (String)ts.get(i).getFieldValue("order"); 
+                    String tsoNext = (String)ts.get(i+1).getFieldValue("order");
+                    int tsoC = 0, tsoN = 0;
+                    if (tsoCurrent != null) {
+                        tsoC = Integer.valueOf(tsoCurrent);
+                    }
+                    if (tsoNext != null) {
+                        tsoN = Integer.valueOf(tsoNext);
+                    }
+                    if (tsoC > tsoN) {
+                        RelObj cache = ts.get(i);
+                        ts.set(i, ts.get(i+1));
+                        ts.set(i+1, cache);
+                        swapped = true;
+                    }
                 }
             }
-            stms.add(stm);
-            stm.myIndex = stms.indexOf(stm);
-            result = stm.getJavaScript();
-
-        } else if (trimmed.matches(evaluationRegex)) {
-            debugParse(" - evaluation match!");
-            debugParse("    "+evaluationRegex);
-            for (int i=1; i<=7; i++) {
-                debugParse("     "+i+": "+trimmed.replaceAll(evaluationRegex, "$"+i));
+            if (debugProgGen) {
+                System.out.println(" Transitions after sort "+ts);
             }
-            outputs.add(trimmed.replaceAll(evaluationRegex, "$2"));
-            result = "   "+parseExpression(trimmed.replaceAll(evaluationRegex, "$1"), inputs, outputs, stms);
-            result += trimmed.replaceAll(evaluationRegex, "$6");
-            result += parseExpression(trimmed.replaceAll(evaluationRegex, "$7"), inputs, outputs, stms);
-            result += ";\n";
+            // Create the code
+            String body = "";
+            HashSet<String> inputs = new HashSet<String>();
+            HashSet<String> outputs = new HashSet<String>();
+            ArrayList<SubtaskMethod> subtasks = new ArrayList<SubtaskMethod>();
+            if (initStatesAL.contains(state)) {
+                RelObj trans = statesTrans.get(state).get(0);
+                String action = processAction(trans.getField("action").getValue(), 
+                        inputs, outputs, subtasks, parser); 
+                body += action;
+                body += "   nextState = \""+getToObj(trans).getName()+"\";";
+            } else {
+                for (RelObj trans : statesTrans.get(state)) {
+                    // Extract lists of input-output variables
+                    String condition = processCondition(
+                            trans.getField("condition").getValue(), inputs, subtasks, parser);
+                    String action = processAction(trans.getField("action").getValue(), 
+                            inputs, outputs, subtasks, parser); 
 
-        } else if (stmt.trim().matches(unaryRegex)) {
-            debugParse(" - unary match!");
-            outputs.add(trimmed.replaceAll(unaryRegex, "$2"));
-            result = "   "+trimmed+";\n";
-
-        } else if (trimmed.matches(methodCallRegex)) {
-            debugParse(" - method call match!");
-            for (int i=1; i<=4; i++) {
-                debugParse("     "+i+": "+trimmed.replaceAll(methodCallRegex, "$"+i));
+                    // Add an if-else statement
+                    body += "if ("+condition+") {\n";
+                    body += action;
+                    body += "   nextState = \""+getToObj(trans).getName()+"\";\n";
+                    body += "} else ";
+                }
+                body += "{\n   print(\"WARNING - No proper exit from state " + state+"\");\n}";
             }
-            result = "   "+trimmed.replaceAll(methodCallRegex, "$1")+"(";
-            result += parseList(trimmed.replaceAll(methodCallRegex, "$4"), inputs, outputs, stms);
-            result += ");\n";
+            // Store the code and relevant stuff
+            stateCodes.put(state, body);
+            stateCodeInputs.put(state, inputs);
+            stateCodeOutputs.put(state, outputs);
+            stateSubtasks.put(state, subtasks);
 
-        } else {
-            error(" Parse error! Cannot match "+stmt);
-            return stmt;
-
+            if (debugProgGen) {
+                System.out.println(" -> "+Arrays.asList(inputs));
+                System.out.println(body);
+                System.out.println(" <- "+Arrays.asList(outputs));
+            }
         }
-        debugParse(" -> "+result);
-        debugParse("    "+inputs);
-        debugParse("    "+outputs);
-        ins.addAll(inputs);
-        outs.addAll(outputs);
+
+        // Perform actions from initState to first state
+        String firstState = advance(initStatesAL.get(0), null, csoName);
+
+        // Return initiated objects
+        return firstState;
+    }
+
+    public String advance(String state, Object[] inputs, String csoName) {
+        if (debug) {
+            System.out.println("\nMealyMachineSupervisor "+csoName+"@"+state+" advance");
+        }
+        String nextState = null;
+        try {
+            String code = stateCodes.get(state);
+            if (code != null) {
+                ScriptEngineManager sem = new ScriptEngineManager();
+                ScriptEngine js = sem.getEngineByName("ECMAScript");
+                ScriptContext ctx = js.getContext();
+
+                if (debugExecute) {
+                    System.out.println("  Source variables: "+stateCodeInputs.get(state));
+                }
+                Class<? extends MealyMachineSupervisor> cl = this.getClass();
+                for (String input : stateCodeInputs.get(state)) {
+                    Field f = cl.getDeclaredField(input);
+                    if (debugExecute) {
+                        System.out.print(input+" = "+f.get(this)+",  ");
+                    }
+                    ctx.setAttribute(input, f.get(this), ScriptContext.ENGINE_SCOPE);
+                }
+                ArrayList<SubtaskMethod> subtasks = stateSubtasks.get(state);
+                if (subtasks!=null &&!subtasks.isEmpty()) {
+                    ctx.setAttribute("stms", subtasks.toArray(), ScriptContext.ENGINE_SCOPE);
+                }
+
+                if (debugExecute) {
+                    System.out.println("\n  Executing:\n"+code);
+                }
+                js.eval(code);
+
+                if (debugExecute) {
+                    System.out.println("  Modified variables: "+stateCodeOutputs.get(state));
+                }
+                for (String output : stateCodeOutputs.get(state)) {
+                    Field f = cl.getDeclaredField(output);
+                    f.set(this, js.get(output));
+                    if (debugExecute) {
+                        System.out.print(output+" = "+f.get(this)+",  ");
+                    }
+                }
+                if (debugExecute) {
+                    System.out.println();
+                }
+                nextState = (String) js.get("nextState");
+            } else {
+                if (debugExecute) {
+                    System.out.println("  No code!");
+                }
+                return state;
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        return nextState;
+    }
+
+    private SchemeObject getFromObj(RelObj transition) {
+        return transition.getStartPort().getObject();
+    }
+    private SchemeObject getToObj(RelObj transition) {
+        return transition.getEndPort().getObject();
+    }
+
+    /**
+     * Parse the condition expression of the transition.
+     * 
+     * NB! Subtasks are not allowed for now.
+     * 
+     * @param logExp
+     * @param inputs
+     * @param subtasks
+     * @return
+     */
+    private String processCondition(String logExp, HashSet<String> inputs, 
+            List<SubtaskMethod> subtasks, Parser parser) {
+        if (debugParse) {
+            System.out.println("Parsing condition "+logExp);
+        }
+        if (logExp == null ||logExp.isEmpty() || logExp.equals("true")) {
+            return "true";
+        }
+        String result = parser.parseExpression(logExp.replaceAll("\\s+", ""), 
+                inputs, null, subtasks);
+        if (debugParse) {
+            System.out.println(" Inputs extracted: "+inputs);
+            System.out.println(" Subtasks handled: "+subtasks);
+            System.out.println(" Return condition: "+result);
+        }
         return result;
     }
 
-    /** Expression parser
-     *  Expects spaceless input!
-     * @param expr
-     * @param ins
-     * @param outs
-     * @param stms
+    /**
+     * Parse the action statements
+     * 
+     * @param clauses
+     * @param inputs
+     * @param outputs
+     * @param subtasks
      * @return
      */
-    public String parseExpression(String expr, HashSet<String> ins, 
-            HashSet<String> outs, List<SubtaskMethod> stms) {
-        debugParse("   Parsing expression: "+expr);
-        if (expr.isEmpty()) {  // Nothing to to with empty
-            debugParse("    - empty");
-            return "";
-        } else if (expr.matches("\\d+")) {  // Nothing to do with numerics
-            debugParse("    - just numeric");
-            return expr;
-        } else if (expr.startsWith("(") && expr.endsWith(")")) {  // Bracketed expression
-            debugParse("    - bracketed expression");
-            String result = "("+parseExpression(expr.substring(1, expr.length()-1), ins, outs, stms)+")";
-            return result;
-        }
-
-        // If there are operators not enclosed in brackets, split the expression 
-        // from there and parse both sides separately (recursively)
-        String opsRegEx = appendAlternatives("()", arithmOps);
-        opsRegEx = appendAlternatives(opsRegEx, logicOps);
-        opsRegEx = appendAlternatives(opsRegEx, comparOps);
-        Pattern p = Pattern.compile(opsRegEx);
-        Matcher m = p.matcher(expr);
-        while (m.find()) {
-            int endIndex = m.start();
-            // Compare the number of opening and closing brackets up to the endIndex
-            if (count(expr, endIndex, "(")==count(expr, endIndex, ")") 
-                    && count(expr, endIndex, "[")==count(expr, endIndex, "]")) {
-                debugParse("    - basic operation");
-                String head = parseExpression(expr.substring(0, endIndex), ins, outs, stms);
-                String operator = m.group();
-                String tail = parseExpression(expr.substring(endIndex+operator.length()), ins, outs, stms);
-                String result = head+operator+tail;
-                return result;
-            }
-        }
-
-        // Method call
-        String methodCallRegex = "^"+dotNameRegEx+"\\((.*)\\)$";
-        if (expr.matches(methodCallRegex)) {
-            debugParse("    - method call");
-            String result = expr.replaceAll(methodCallRegex, "$1");
-            result += "("+parseList(expr.replaceAll(methodCallRegex, "$4"), ins, outs, stms)+")";
-            return result;
-        }
-
-        // Subtask
-        String subtaskCallRegex = "^(\\[.+\\Q|-\\E.+\\Q->\\E.+\\])\\((.+)\\)$";
-        if (expr.matches(subtaskCallRegex)) {
-            debugParse("    - subtask");
-            SubtaskMethod stm = new SubtaskMethod();
-            stm.prepare(scheme, expr.replaceAll(subtaskCallRegex, "$1"));
-            stm.inputList = parseList(expr.replaceAll(subtaskCallRegex, "$2"), ins, outs, stms);
-            stms.add(stm);
-            stm.myIndex = stms.indexOf(stm);
-            return stm.getJavaScript();
-        }
-
-        if (expr.matches("^"+dotIndexNameRegEx+"$")) {  // A variable
-            debugParse("    - just variable");
-            String result = expr.replaceAll("^"+dotIndexNameRegEx+"$", "$2");
-            ins.add(result);
-            result += parseIndexes(expr.replaceAll("^"+dotIndexNameRegEx+"$", "$3$4$5"), ins, outs, stms);
-            return result;
-        }
-
-        error("Parse error! Unable to match: "+expr);
-        return "";
-    }
-
-    String parseList(String list, HashSet<String> ins, HashSet<String> outs, 
-            List<SubtaskMethod> stms) {
-        debugParse("   Parsing list: "+list);
-        Pattern p = Pattern.compile(",");
-        Matcher m = p.matcher(list);
-        while (m.find()) {
-            int endIndex = m.start();
-            // Compare the number of opening and closing brackets up to the endIndex
-            if (count(list, endIndex, "(")==count(list, endIndex, ")") 
-                    && count(list, endIndex, "[")==count(list, endIndex, "]")) {
-                String head = parseExpression(list.substring(0, endIndex), ins, outs, stms);
-                String operator = m.group();
-                String tail = parseList(list.substring(endIndex+operator.length()), ins, outs, stms);
-                String result = head+operator+tail;
-                return result;
-            }
-        }
-        // No commas in list
-        return parseExpression(list, ins, outs, stms);
-    }
-
-    String parseIndexes(String expr, HashSet<String> ins, HashSet<String> outs, 
-            List<SubtaskMethod> stms) {
-        debugParse("   Parsing indexes: "+expr);
-        int startIdx = expr.indexOf("[");
-        if (startIdx == -1) {  // No more indexes
-            return expr;
-        }
-        int endIdx = startIdx+1;
-        // Find the pairing square bracket
-        while ((endIdx = expr.indexOf("]", endIdx)+1) > 0) {
-            // Compare the number of opening and closing brackets up to the endIndex
-            if (count(expr, endIdx, "[")==count(expr, endIdx, "]")) {
-                String head = expr.substring(0, startIdx);
-                head += "["+parseExpression(expr.substring(startIdx+1, endIdx-1), ins, outs, stms)+"]";
-                String tail = parseIndexes(expr.substring(endIdx), ins, outs, stms);
-                return head+tail;
-            }
-        }
-        error("Parse error! Unable to find pairs of square brackets "+ expr);
-        return expr;
-    }
-
-    int count(String str, int endIdx, String sub) {
-        if (str.isEmpty() || sub.isEmpty()) {
-            return 0;
-        }
-        int count = 0;
-        int idx = 0;
-        while ( ((idx = str.indexOf(sub, idx)) != -1) && idx<endIdx ) {
-            count++;
-            idx += sub.length();
-        }
-        return count;
-    }
-
-    String appendAlternatives(String regex, String[] values) {
-        regex = regex.substring(0, regex.length()-1);
-        for (String op : values) {
-            regex += "\\Q"+op+"\\E"+"|";
-        }
-        regex = regex.substring(0, regex.length()-1) + ")";
-        return regex;
-    }
-
-    void debugParse(String str) {
+    private String processAction(String clauses, HashSet<String> inputs, 
+            HashSet<String> outputs, List<SubtaskMethod> subtasks, Parser parser) {
         if (debugParse) {
-            System.out.println(str);
+            System.out.println("Parsing action:\n{"+clauses+"\n}");
         }
+        if (clauses==null || clauses.isEmpty()) {
+            return "";
+        }
+        String result = "";
+        for (String clause : clauses.split(";")) {
+            result += parser.parseStatement(clause, inputs, outputs, subtasks);
+        }
+        if (debugParse) {
+            System.out.println(" Inputs extracted: "+inputs);
+            System.out.println(" Outputs extracted: "+outputs);
+            System.out.println(" Subtasks handled: "+subtasks);
+            System.out.println(" Return action:\n"+result);
+        }
+        return result;
     }
 
-    void error(String str) {
-        System.out.println(str);
+    /**
+     * A method used to set the alias values based on a given filed name list
+     * @param state
+     * @param nameList
+     * @return
+     */
+    public Object[] setInterfaceVariables(String state, String nameList) {
+        String[] names = nameList.split(",");
+        Object[] result = new Object[names.length];
+        try {
+            for (int i=0; i<names.length; i++) {
+                result[i] = this.getClass().getDeclaredField(names[i]).get(this);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return result;
     }
 
 }
